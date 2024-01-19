@@ -1,26 +1,43 @@
-// Uncomment this block to pass the first stage
-use std::{io::Write, net::TcpListener};
+use anyhow::{Context, Result};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+use tokio::spawn;
 
-fn main() {
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    println!("Logs from your program will appear here!");
+async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
+    let mut buf = Vec::new();
+    socket
+        .read_to_end(&mut buf)
+        .await
+        .context("CTX: handle connection read buffer")?;
+    let req_data = String::from_utf8_lossy(&buf[..]);
 
-    // Uncomment this block to pass the first stage
+    let response = if req_data.starts_with("GET / HTTP/1.1") {
+        "HTTP/1.1 200 OK\r\n\r\n"
+    } else {
+        "HTTP/1.1 404 Not Found\r\n\r\n"
+    };
 
-    let listener = TcpListener::bind("127.0.0.1:4221").unwrap();
+    socket
+        .write_all(response.as_bytes())
+        .await
+        .context("CTX: write connection response")?;
 
-    for stream in listener.incoming() {
-        match stream {
-            Ok(mut stream) => {
-                println!("accepted new connection");
-                let response = "HTTP/1.1 200 OK\r\n\r\n";
-                stream
-                    .write_all(response.as_bytes())
-                    .expect("that we write response");
-            }
-            Err(e) => {
-                println!("error: {}", e);
-            }
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:4221")
+        .await
+        .expect("Failed to bind to address");
+
+    loop {
+        if let Ok((mut socket, _)) = listener.accept().await {
+            spawn(async move {
+                if let Err(e) = handle_connection(&mut socket).await {
+                    eprintln!("Error handling connection: {:?}", e);
+                }
+            });
         }
     }
 }
