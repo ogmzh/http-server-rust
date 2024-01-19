@@ -4,11 +4,13 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio::spawn;
 
 async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
-    let mut buf = Vec::new();
+    println!("new connection");
+    let mut buf = [0u8; 1024];
     socket
-        .read_to_end(&mut buf)
+        .read(&mut buf)
         .await
         .context("CTX: handle connection read buffer")?;
+
     let req_data = String::from_utf8_lossy(&buf[..]);
 
     let response = if req_data.starts_with("GET / HTTP/1.1") {
