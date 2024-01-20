@@ -1,26 +1,40 @@
 use anyhow::{Context, Result};
+use http_server_starter_rust::http::{
+    content_type::ContentType, method::Method, status::Status, version::Version,
+};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::spawn;
 
+use http_server_starter_rust::request::Request;
+use http_server_starter_rust::response::Response;
+
+const EMPTY_RESPONSE: Response = Response {
+    status: Status::Ok,
+    version: Version::V1_1,
+    content: String::new(),
+    content_length: 0,
+    content_type: ContentType::TextPlain,
+};
+
 async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
-    println!("new connection");
-    let mut buf = [0u8; 1024];
+    let mut buf = [0u8; 1024]; // arbitrary buffer size
     socket
         .read(&mut buf)
         .await
         .context("CTX: handle connection read buffer")?;
 
-    let req_data = String::from_utf8_lossy(&buf[..]);
+    let request =
+        Request::from_byte_array(&buf).context("CTX: could not parse Request from byte buffer")?;
 
-    let response = if req_data.starts_with("GET / HTTP/1.1") {
-        "HTTP/1.1 200 OK\r\n\r\n"
-    } else {
-        "HTTP/1.1 404 Not Found\r\n\r\n"
+    let response: Response = match request.method {
+        Method::Get => EMPTY_RESPONSE,
+        _ => EMPTY_RESPONSE,
     };
 
+    let response_string: String = response.try_into()?;
     socket
-        .write_all(response.as_bytes())
+        .write_all(response_string.as_bytes())
         .await
         .context("CTX: write connection response")?;
 
