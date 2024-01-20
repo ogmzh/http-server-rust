@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use http_server_starter_rust::http::path::Path;
 use http_server_starter_rust::http::{
     content_type::ContentType, method::Method, status::Status, version::Version,
 };
@@ -12,9 +13,9 @@ use http_server_starter_rust::response::Response;
 const EMPTY_RESPONSE: Response = Response {
     status: Status::Ok,
     version: Version::V1_1,
+    content_type: ContentType::TextPlain,
     content: String::new(),
     content_length: 0,
-    content_type: ContentType::TextPlain,
 };
 
 async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
@@ -24,13 +25,24 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
         .await
         .context("CTX: handle connection read buffer")?;
 
-    let request =
-        Request::from_byte_array(&buf).context("CTX: could not parse Request from byte buffer")?;
-
-    let response: Response = match request.method {
-        Method::Get => EMPTY_RESPONSE,
-        _ => EMPTY_RESPONSE,
+    let request = Request::from_byte_array(&buf);
+    let response: Response = match request {
+        Ok(req) => match req.path {
+            Path::Empty => Response::ok("".to_owned()),
+            Path::Echo => {
+                let content = String::from(match req.full_path.starts_with('/') {
+                    true => req.full_path[1..].split_once('/').unwrap_or_default().1,
+                    false => req.full_path.split_once('/').unwrap_or_default().1,
+                });
+                Response::ok(content)
+            }
+        },
+        Err(_) => Response::not_found()
     };
+
+    // let response: Response = match request.method {
+    //     Method::Get => EMPTY_RESPONSE,
+    // };
 
     let response_string: String = response.try_into()?;
     socket

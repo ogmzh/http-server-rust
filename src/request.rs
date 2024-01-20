@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::str::SplitWhitespace;
 use thiserror::Error;
 
@@ -19,7 +19,6 @@ pub struct Request {
     pub version: Version,
     pub host: String,
     pub agent: String,
-    pub content: String,
 }
 
 impl Request {
@@ -32,7 +31,7 @@ impl Request {
             .next()
             .ok_or(RequestError::UnknownRequestContent)?
             .into();
-        let path: Path = full_path.clone().try_into()?;
+        let path: Path = full_path.clone().try_into().context("CTX: No such path")?;
         let version = values
             .next()
             .ok_or(RequestError::UnknownRequestContent)?
@@ -56,14 +55,6 @@ impl Request {
         let host = Request::parse_header_line(lines.next().unwrap_or_default(), "Host:");
         let agent = Request::parse_header_line(lines.next().unwrap_or_default(), "User-Agent:");
 
-        let content = match path {
-            Path::Empty => "".to_owned(),
-            Path::Echo => String::from(match full_path.starts_with('/') {
-                true => full_path[1..].split_once('/').unwrap_or_default().1,
-                false => full_path.split_once('/').unwrap_or_default().1,
-            }),
-        };
-
         Ok(Self {
             method,
             full_path,
@@ -71,7 +62,6 @@ impl Request {
             version,
             host,
             agent,
-            content,
         })
     }
 }
@@ -94,7 +84,6 @@ mod tests {
         assert_eq!(req.agent, "test-agent/1.0.0");
     }
 
-
     #[test]
     fn parse_empty_content() {
         let payload = r#"GET / HTTP/1.1
@@ -107,7 +96,6 @@ mod tests {
         assert_eq!(req.version, Version::V1_1);
         assert_eq!(req.host, "localhost:4221");
         assert_eq!(req.agent, "test-agent/1.0.0");
-        assert_eq!(req.content, "");
     }
 
     #[test]
@@ -122,6 +110,5 @@ mod tests {
         assert_eq!(req.version, Version::V1_1);
         assert_eq!(req.host, "localhost:4221");
         assert_eq!(req.agent, "test-agent/1.0.0");
-        assert_eq!(req.content, "foo/bar");
     }
 }
