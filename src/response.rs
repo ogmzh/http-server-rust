@@ -1,13 +1,35 @@
+use crate::http::{content_type::ContentType, status::Status, version::Version};
 use anyhow::{Error, Result};
-use crate::http::{version::Version, status::Status, content_type::ContentType};
 
 #[derive(Debug, Clone)]
 pub struct Response {
     pub version: Version,
     pub status: Status,
-    pub content_length: u16,
+    pub content_length: usize,
     pub content_type: ContentType,
     pub content: String,
+}
+
+impl Response {
+    pub fn ok(content: String) -> Self {
+        Self {
+            status: Status::Ok,
+            version: Version::V1_1,
+            content_type: ContentType::TextPlain,
+            content_length: content.len(),
+            content,
+        }
+    }
+
+    pub fn not_found() -> Self {
+        Self {
+            status: Status::NotFound,
+            version: Version::V1_1,
+            content_type: ContentType::TextPlain,
+            content_length: 0,
+            content: "".to_owned(),
+        }
+    }
 }
 
 impl TryInto<String> for Response {
@@ -36,7 +58,7 @@ mod tests {
             status: Status::Ok,
             content: "test".to_string(),
             content_length: 4,
-            content_type: ContentType::TextPlain
+            content_type: ContentType::TextPlain,
         };
         let response_content = response.content.clone();
         let response_content_length = response.content_length.to_string();
