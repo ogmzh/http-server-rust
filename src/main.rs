@@ -28,10 +28,10 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
         },
         Err(_) => Response::not_found(),
     };
+    eprintln!("Response: {response}");
 
-    let response_string: String = response.try_into()?;
     socket
-        .write_all(response_string.as_bytes())
+        .write_all(response.to_string().as_bytes())
         .await
         .context("CTX: write connection response")?;
 
