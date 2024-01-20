@@ -1,22 +1,11 @@
 use anyhow::{Context, Result};
 use http_server_starter_rust::http::path::Path;
-use http_server_starter_rust::http::{
-    content_type::ContentType, method::Method, status::Status, version::Version,
-};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::spawn;
 
 use http_server_starter_rust::request::Request;
 use http_server_starter_rust::response::Response;
-
-const EMPTY_RESPONSE: Response = Response {
-    status: Status::Ok,
-    version: Version::V1_1,
-    content_type: ContentType::TextPlain,
-    content: String::new(),
-    content_length: 0,
-};
 
 async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
     let mut buf = [0u8; 1024]; // arbitrary buffer size
@@ -37,12 +26,8 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
                 Response::ok(content)
             }
         },
-        Err(_) => Response::not_found()
+        Err(_) => Response::not_found(),
     };
-
-    // let response: Response = match request.method {
-    //     Method::Get => EMPTY_RESPONSE,
-    // };
 
     let response_string: String = response.try_into()?;
     socket
