@@ -24,7 +24,9 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
         file_directory.is_some()
     );
 
-    let request = Request::from_byte_array(&buf);
+    // clear out null bytes
+    let request =
+        Request::from_byte_array(buf.iter().filter(|&&byte| byte != 0).cloned().collect());
     let response: Response = match request {
         Ok(req) => match req.path {
             Path::Empty => Response::ok_str("".to_owned()),
@@ -69,9 +71,7 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
                         }
                     }
                 }
-                None => {
-                    Response::not_found_str()
-                }
+                None => Response::not_found_str(),
             },
         },
         Err(e) => {
