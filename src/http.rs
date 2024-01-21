@@ -123,12 +123,14 @@ pub mod content_type {
     #[derive(Debug, PartialEq, Clone, Copy)]
     pub enum ContentType {
         TextPlain,
+        OctetStream,
     }
 
     impl From<ContentType> for &str {
         fn from(val: ContentType) -> Self {
             match val {
                 ContentType::TextPlain => "text/plain",
+                ContentType::OctetStream => "application/octet-stream"
             }
         }
     }
@@ -151,7 +153,8 @@ pub mod path {
     pub enum Path {
         Empty,
         Echo,
-        UserAgent
+        UserAgent,
+        Files,
     }
 
     impl From<Path> for &str {
@@ -159,6 +162,7 @@ pub mod path {
             match val {
                 Path::Empty => "/",
                 Path::Echo => "/echo",
+                Path::Files => "/files",
                 Path::UserAgent => "/user-agent"
             }
         }
@@ -172,6 +176,7 @@ pub mod path {
                 "/" => Self::Empty,
                 "/user-agent" => Self::UserAgent,
                 _ if value.starts_with("/echo") => Path::Echo,
+                _ if value.starts_with("/files") => Path::Files,
                 _ => return Err(TryFromPathError::Parse),
             })
         }
