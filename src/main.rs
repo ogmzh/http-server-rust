@@ -52,7 +52,6 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
                                 let content = fs::read(&file_directory).await?;
                                 Response::ok_bin(content)
                             } else {
-                                eprintln!("NOT FOUND 1");
                                 Response::not_found_bin()
                             }
                         }
@@ -71,19 +70,15 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
                     }
                 }
                 None => {
-                    eprintln!("NOT FOUND 2");
                     Response::not_found_str()
                 }
             },
         },
         Err(e) => {
             eprintln!("error {}", e);
-            eprintln!("NOT FOUND 3");
             Response::not_found_str()
         }
     };
-    eprintln!("Response: {response}");
-
     let response_bytes: Vec<u8> = response.into();
 
     socket

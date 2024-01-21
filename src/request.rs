@@ -40,7 +40,7 @@ impl Request {
         Ok((method, full_path, path, version))
     }
 
-    fn parse_header_line(line: &str, keyword: &str) -> String {
+    fn parse_line(line: &str, keyword: &str) -> String {
         line.split_once(keyword)
             .map_or("", |(_, value)| value.trim())
             .to_string()
@@ -53,9 +53,9 @@ impl Request {
         let (method, full_path, path, version) =
             Request::parse_request_line(&mut lines.next().unwrap_or_default().split_whitespace())?;
 
-        let host = Request::parse_header_line(lines.next().unwrap_or_default(), "Host:");
-        let agent = Request::parse_header_line(lines.next().unwrap_or_default(), "User-Agent:");
-
+        let host = Request::parse_line(lines.next().unwrap_or_default(), "Host:");
+        let agent = Request::parse_line(lines.next().unwrap_or_default(), "User-Agent:");
+        let body = lines.nth(4).map(|s| s.to_owned().into_bytes());
         Ok(Self {
             method,
             full_path,
@@ -63,7 +63,7 @@ impl Request {
             version,
             host,
             agent,
-            body: None
+            body,
         })
     }
 }
