@@ -151,6 +151,7 @@ pub mod path {
     pub enum Path {
         Empty,
         Echo,
+        UserAgent
     }
 
     impl From<Path> for &str {
@@ -158,6 +159,7 @@ pub mod path {
             match val {
                 Path::Empty => "/",
                 Path::Echo => "/echo",
+                Path::UserAgent => "/user-agent"
             }
         }
     }
@@ -168,6 +170,7 @@ pub mod path {
         fn try_from(value: &str) -> Result<Self, Self::Error> {
             Ok(match value {
                 "/" => Self::Empty,
+                "/user-agent" => Self::UserAgent,
                 _ if value.starts_with("/echo") => Path::Echo,
                 _ => return Err(TryFromPathError::Parse),
             })
