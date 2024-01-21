@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
-use http_server_starter_rust::http::path::Path;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::spawn;
 
+use http_server_starter_rust::http::path::Path;
 use http_server_starter_rust::request::Request;
 use http_server_starter_rust::response::Response;
 
@@ -18,6 +18,7 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
     let response: Response = match request {
         Ok(req) => match req.path {
             Path::Empty => Response::ok("".to_owned()),
+            Path::UserAgent => Response::ok(req.agent),
             Path::Echo => {
                 let content = String::from(match req.full_path.starts_with('/') {
                     true => req.full_path[1..].split_once('/').unwrap_or_default().1,
@@ -40,6 +41,7 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+
     let listener = TcpListener::bind("127.0.0.1:4221")
         .await
         .expect("Failed to bind to address");
