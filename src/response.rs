@@ -137,7 +137,7 @@ impl Display for Response {
         write!(
             f,
             "{} {}\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
-            version, status, content_type, content_length, self.content.clone().unwrap()
+            version, status, content_type, content_length, self.content.clone().unwrap_or(Content::Text("".to_string()))
         )
     }
 }
