@@ -46,8 +46,8 @@ impl Request {
             .to_string()
     }
 
-    pub fn from_byte_array(buff: &[u8]) -> Result<Self> {
-        let req_data = String::from_utf8_lossy(buff);
+    pub fn from_byte_array(buff: Vec<u8>) -> Result<Self> {
+        let req_data = String::from_utf8(buff).unwrap();
         let mut lines = req_data.lines();
 
         let (method, full_path, path, version) =
@@ -55,7 +55,10 @@ impl Request {
 
         let host = Request::parse_line(lines.next().unwrap_or_default(), "Host:");
         let agent = Request::parse_line(lines.next().unwrap_or_default(), "User-Agent:");
-        let body = lines.nth(4).map(|s| s.to_owned().into_bytes());
+        let _content_length = lines.next().unwrap_or_default();
+        let _accept_encoding = lines.next().unwrap_or_default();
+        let body = lines.nth(1).map(|s| s.to_owned());
+
         Ok(Self {
             method,
             full_path,
