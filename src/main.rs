@@ -19,11 +19,6 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
         .await
         .context("CTX: handle connection read buffer")?;
 
-    println!(
-        "handle connection file dir {file_directory:?} {}",
-        file_directory.is_some()
-    );
-
     // clear out null bytes
     let request =
         Request::from_byte_array(buf.iter().filter(|&&byte| byte != 0).cloned().collect());
