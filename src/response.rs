@@ -59,12 +59,25 @@ impl Response {
 
 impl From<Response> for Vec<u8> {
     fn from(val: Response) -> Self {
+        let version: &str = Version::V1_1.into();
+        let status: &str = Status::Ok.into();
+        let new_line: &str = "\r\n";
+        let content_type: &str = ContentType::OctetStream.into();
+
         let mut bytes = Vec::new();
-        let binding = Response::ok_str("".to_owned()).to_string();
-        let response_ok = binding.trim_end();
-        bytes.extend_from_slice(response_ok.as_bytes());
+        bytes.extend(version.as_bytes());
+        bytes.extend(b" ");
+        bytes.extend(status.as_bytes());
+        bytes.extend(new_line.as_bytes());
+        bytes.extend(b"Content-Type: ");
+        bytes.extend(content_type.as_bytes());
+        bytes.extend(new_line.as_bytes());
         if let Content::Binary(content) = val.content {
-            bytes.extend_from_slice(&content)
+            let content_length = format!("Content-Length: {}", val.content_length);
+            bytes.extend(content_length.as_bytes());
+            bytes.extend(new_line.as_bytes());
+            bytes.extend(new_line.as_bytes());
+            bytes.extend(&content);
         }
 
         bytes
