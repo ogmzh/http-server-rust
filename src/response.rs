@@ -71,10 +71,10 @@ impl From<Response> for Vec<u8> {
     fn from(val: Response) -> Self {
         let version: &str = Version::V1_1.into();
         let status: &str = Status::Ok.into();
+        let content_type: &str = val.content_type.into();
         let new_line: &str = "\r\n";
-        let content_type: &str = ContentType::OctetStream.into();
 
-        let mut bytes = Vec::new();
+        let mut bytes: Vec<u8> = Vec::new();
         bytes.extend(version.as_bytes());
         bytes.extend(b" ");
         bytes.extend(status.as_bytes());
@@ -82,12 +82,14 @@ impl From<Response> for Vec<u8> {
         bytes.extend(b"Content-Type: ");
         bytes.extend(content_type.as_bytes());
         bytes.extend(new_line.as_bytes());
+        let content_length = format!("Content-Length: {}", val.content_length);
+        bytes.extend(content_length.as_bytes());
+        bytes.extend(new_line.as_bytes());
+        bytes.extend(new_line.as_bytes());
         if let Content::Binary(content) = val.content {
-            let content_length = format!("Content-Length: {}", val.content_length);
-            bytes.extend(content_length.as_bytes());
-            bytes.extend(new_line.as_bytes());
-            bytes.extend(new_line.as_bytes());
             bytes.extend(&content);
+        } else if let Content::Text(content) = val.content {
+            bytes.extend(content.as_bytes());
         }
 
         bytes
