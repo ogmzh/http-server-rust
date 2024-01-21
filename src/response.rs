@@ -69,8 +69,8 @@ impl Response {
 
 impl From<Response> for Vec<u8> {
     fn from(val: Response) -> Self {
-        let version: &str = Version::V1_1.into();
-        let status: &str = Status::Ok.into();
+        let version: &str = val.version.into();
+        let status: &str = val.status.into();
         let content_type: &str = val.content_type.into();
         let new_line: &str = "\r\n";
 
