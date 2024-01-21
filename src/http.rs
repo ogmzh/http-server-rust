@@ -56,6 +56,7 @@ pub mod method {
     #[derive(Debug, PartialEq)]
     pub enum Method {
         Get,
+        Post,
     }
 
     impl TryFrom<&str> for Method {
@@ -64,6 +65,7 @@ pub mod method {
         fn try_from(value: &str) -> Result<Self, Self::Error> {
             match value {
                 "GET" => Ok(Self::Get),
+                "POST" => Ok(Self::Post),
                 _ => Err(MethodParseError),
             }
         }
@@ -83,6 +85,7 @@ pub mod method {
         fn from(val: Method) -> Self {
             match val {
                 Method::Get => "GET",
+                Method::Post => "POST",
             }
         }
     }
@@ -100,6 +103,8 @@ pub mod status {
     pub enum Status {
         Ok,
         NotFound,
+        BadRequest,
+        Created,
     }
 
     impl From<Status> for &str {
@@ -107,6 +112,8 @@ pub mod status {
             match val {
                 Status::Ok => "200 OK",
                 Status::NotFound => "404 Not Found",
+                Status::BadRequest => "400 Bad Request",
+                Status::Created => "201 Created",
             }
         }
     }
