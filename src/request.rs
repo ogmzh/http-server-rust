@@ -19,7 +19,7 @@ pub struct Request {
     pub version: Version,
     pub host: String,
     pub agent: String,
-    pub body: Option<Vec<u8>>,
+    pub body: Option<String>,
 }
 
 impl Request {
@@ -81,7 +81,7 @@ mod tests {
                         Host: localhost:4221
                         User-Agent: test-agent/1.0.0
                         "#;
-        let req = Request::from_byte_array(payload.as_bytes()).unwrap();
+        let req = Request::from_byte_array(payload.to_string().into_bytes()).unwrap();
         assert_eq!(req.method, Method::Get);
         assert_eq!(req.path, Path::Empty);
         assert_eq!(req.version, Version::V1_1);
@@ -95,7 +95,7 @@ mod tests {
                         Host: localhost:4221
                         User-Agent: test-agent/1.0.0
                         "#;
-        let req = Request::from_byte_array(payload.as_bytes()).unwrap();
+        let req = Request::from_byte_array(payload.to_string().into_bytes()).unwrap();
         assert_eq!(req.method, Method::Get);
         assert_eq!(req.path, Path::Empty);
         assert_eq!(req.version, Version::V1_1);
@@ -109,7 +109,7 @@ mod tests {
                         Host: localhost:4221
                         User-Agent: test-agent/1.0.0
                         "#;
-        let req = Request::from_byte_array(payload.as_bytes()).unwrap();
+        let req = Request::from_byte_array(payload.to_string().into_bytes()).unwrap();
         assert_eq!(req.method, Method::Get);
         assert_eq!(req.path, Path::Echo);
         assert_eq!(req.version, Version::V1_1);
