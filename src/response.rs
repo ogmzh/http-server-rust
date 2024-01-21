@@ -88,7 +88,7 @@ impl Response {
 
     pub fn created(content_length: usize) -> Self {
         Self {
-            status: Status::BadRequest,
+            status: Status::Created,
             version: Version::V1_1,
             content_type: ContentType::TextPlain,
             content_length,
