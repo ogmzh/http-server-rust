@@ -37,9 +37,10 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
             }
             Path::Files => match file_directory {
                 Some(directory) => {
-                    let metadata = fs::metadata(directory).await;
+                    let file_directory = format!("{}/{}", directory, req.full_path[1..].split_once('/').unwrap().1);
+                    let metadata = fs::metadata(&file_directory).await;
                     if metadata.is_ok() && metadata.unwrap().is_file() {
-                        let content = fs::read(directory).await?;
+                        let content = fs::read(&file_directory).await?;
                         Response::ok_bin(content)
                     } else {
                         Response::not_found()
