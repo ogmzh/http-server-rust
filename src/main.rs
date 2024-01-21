@@ -37,21 +37,30 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
             }
             Path::Files => match file_directory {
                 Some(directory) => {
-                    let file_directory = format!("{}/{}", directory, req.full_path[1..].split_once('/').unwrap().1);
+                    let file_directory = format!(
+                        "{}/{}",
+                        directory,
+                        req.full_path[1..].split_once('/').unwrap().1
+                    );
                     let metadata = fs::metadata(&file_directory).await;
                     if metadata.is_ok() && metadata.unwrap().is_file() {
                         let content = fs::read(&file_directory).await?;
                         Response::ok_bin(content)
                     } else {
-                        Response::not_found()
+                        eprintln!("NOT FOUND 1");
+                        Response::not_found_bin()
                     }
                 }
-                None => Response::not_found(),
+                None => {
+                    eprintln!("NOT FOUND 2");
+                    Response::not_found_str()
+                }
             },
         },
         Err(e) => {
             eprintln!("error {}", e);
-            Response::not_found()
+            eprintln!("NOT FOUND 3");
+            Response::not_found_str()
         }
     };
     eprintln!("Response: {response}");

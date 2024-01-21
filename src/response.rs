@@ -46,13 +46,23 @@ impl Response {
         }
     }
 
-    pub fn not_found() -> Self {
+    pub fn not_found_str() -> Self {
         Self {
             status: Status::NotFound,
             version: Version::V1_1,
             content_type: ContentType::TextPlain,
             content_length: 0,
             content: Content::Text("".to_owned()),
+        }
+    }
+
+    pub fn not_found_bin() -> Self {
+        Self {
+            status: Status::NotFound,
+            version: Version::V1_1,
+            content_type: ContentType::OctetStream,
+            content_length: 0,
+            content: Content::Binary(Vec::new()),
         }
     }
 }
