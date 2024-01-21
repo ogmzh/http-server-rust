@@ -46,7 +46,7 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
 async fn main() -> Result<()> {
     let listener = TcpListener::bind("127.0.0.1:4221")
         .await
-        .expect("Failed to bind to address");
+        .expect("Failed to bind to address.");
 
     loop {
         if let Ok((mut socket, _)) = listener.accept().await {
