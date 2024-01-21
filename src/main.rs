@@ -27,7 +27,10 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
                 Response::ok(content)
             }
         },
-        Err(_) => Response::not_found(),
+        Err(e) => {
+            eprintln!("error {}", e);
+            Response::not_found()
+        }
     };
     eprintln!("Response: {response}");
 
@@ -41,7 +44,6 @@ async fn handle_connection(socket: &mut TcpStream) -> Result<()> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-
     let listener = TcpListener::bind("127.0.0.1:4221")
         .await
         .expect("Failed to bind to address");

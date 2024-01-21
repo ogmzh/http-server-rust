@@ -181,11 +181,7 @@ pub mod path {
         type Error = TryFromPathError;
 
         fn try_from(value: String) -> Result<Self, Self::Error> {
-            Ok(match value.as_str() {
-                "/" => Self::Empty,
-                _ if value.starts_with("/echo") => Path::Echo,
-                _ => return Err(TryFromPathError::Parse),
-            })
+            Self::try_from(value.as_str())
         }
     }
 
