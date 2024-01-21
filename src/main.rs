@@ -67,8 +67,10 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
 
     // i couldve done this nicer but eh
     let response_bytes: Vec<u8> = if file_directory.is_some() {
+        eprintln!("RETURN BIN BYTES {:?}", response.status);
         response.into()
     } else {
+        eprintln!("RETURN TEXT BYTES {:?}", response.status);
         response.to_string().as_bytes().into()
     };
 
