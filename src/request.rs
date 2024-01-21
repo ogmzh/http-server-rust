@@ -19,6 +19,7 @@ pub struct Request {
     pub version: Version,
     pub host: String,
     pub agent: String,
+    pub body: Option<Vec<u8>>,
 }
 
 impl Request {
@@ -62,6 +63,7 @@ impl Request {
             version,
             host,
             agent,
+            body: None
         })
     }
 }

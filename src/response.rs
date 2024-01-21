@@ -22,7 +22,7 @@ pub struct Response {
     pub status: Status,
     pub content_length: usize,
     pub content_type: ContentType,
-    pub content: Content,
+    pub content: Option<Content>,
 }
 
 impl Response {
@@ -32,7 +32,7 @@ impl Response {
             version: Version::V1_1,
             content_type: ContentType::TextPlain,
             content_length: content.len(),
-            content: Content::Text(content),
+            content: Some(Content::Text(content)),
         }
     }
 
@@ -42,7 +42,7 @@ impl Response {
             version: Version::V1_1,
             content_type: ContentType::OctetStream,
             content_length: content.len(),
-            content: Content::Binary(content),
+            content: Some(Content::Binary(content)),
         }
     }
 
@@ -52,7 +52,7 @@ impl Response {
             version: Version::V1_1,
             content_type: ContentType::TextPlain,
             content_length: 0,
-            content: Content::Text("".to_owned()),
+            content: None,
         }
     }
 
@@ -62,7 +62,37 @@ impl Response {
             version: Version::V1_1,
             content_type: ContentType::OctetStream,
             content_length: 0,
-            content: Content::Binary(Vec::new()),
+            content: None,
+        }
+    }
+
+    pub fn bad_req_bin() -> Self {
+        Self {
+            status: Status::BadRequest,
+            version: Version::V1_1,
+            content_type: ContentType::OctetStream,
+            content_length: 0,
+            content: None
+        }
+    }
+
+    pub fn bad_req_str() -> Self {
+        Self {
+            status: Status::BadRequest,
+            version: Version::V1_1,
+            content_type: ContentType::TextPlain,
+            content_length: 0,
+            content: None
+        }
+    }
+
+    pub fn created(content_length: usize) -> Self {
+        Self {
+            status: Status::BadRequest,
+            version: Version::V1_1,
+            content_type: ContentType::TextPlain,
+            content_length,
+            content: None
         }
     }
 }
@@ -86,9 +116,9 @@ impl From<Response> for Vec<u8> {
         bytes.extend(content_length.as_bytes());
         bytes.extend(new_line.as_bytes());
         bytes.extend(new_line.as_bytes());
-        if let Content::Binary(content) = val.content {
+        if let Some(Content::Binary(content)) = val.content {
             bytes.extend(&content);
-        } else if let Content::Text(content) = val.content {
+        } else if let Some(Content::Text(content)) = val.content {
             bytes.extend(content.as_bytes());
         }
 
@@ -96,6 +126,7 @@ impl From<Response> for Vec<u8> {
     }
 }
 
+// this should get deleted imo
 impl Display for Response {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let version: &str = self.version.into();
@@ -106,7 +137,7 @@ impl Display for Response {
         write!(
             f,
             "{} {}\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n{}",
-            version, status, content_type, content_length, self.content
+            version, status, content_type, content_length, self.content.clone().unwrap()
         )
     }
 }
@@ -126,7 +157,7 @@ mod tests {
         let content_type_str: &str = ContentType::TextPlain.into();
         assert_eq!(response_status_str, "200 OK");
         assert_eq!(response_ver_str, "HTTP/1.1");
-        assert_eq!(response_content.to_string(), "test");
+        assert_eq!(response_content.unwrap().to_string(), "test");
         assert_eq!(response_content_length, "4");
         assert_eq!(content_type_str, "text/plain");
         assert_eq!(
@@ -146,7 +177,7 @@ mod tests {
         let content_type_str: &str = ContentType::OctetStream.into();
         assert_eq!(response_status_str, "200 OK");
         assert_eq!(response_ver_str, "HTTP/1.1");
-        assert_eq!(response_content.to_string(), "binary content");
+        assert_eq!(response_content.unwrap().to_string(), "binary content");
         assert_eq!(response_content_length, "4");
         assert_eq!(content_type_str, "application/octet-stream");
         assert_eq!(response_str, "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 4\r\n\r\nbinary content");

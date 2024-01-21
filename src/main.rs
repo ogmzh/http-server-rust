@@ -3,6 +3,7 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use http_server_starter_rust::http::method::Method;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::{fs, spawn};
@@ -37,18 +38,36 @@ async fn handle_connection(socket: &mut TcpStream, file_directory: &Option<Strin
             }
             Path::Files => match file_directory {
                 Some(directory) => {
-                    let file_directory = format!(
-                        "{}/{}",
-                        directory,
-                        req.full_path[1..].split_once('/').unwrap().1
-                    );
-                    let metadata = fs::metadata(&file_directory).await;
-                    if metadata.is_ok() && metadata.unwrap().is_file() {
-                        let content = fs::read(&file_directory).await?;
-                        Response::ok_bin(content)
-                    } else {
-                        eprintln!("NOT FOUND 1");
-                        Response::not_found_bin()
+                    match req.method {
+                        // TODO: extract the logic to something that can handle appropriate methods, paths
+                        // and return appropriate error codes, i.e. 404, 406, etc
+                        Method::Get => {
+                            let file_directory = format!(
+                                "{}/{}",
+                                directory,
+                                req.full_path[1..].split_once('/').unwrap().1
+                            );
+                            let metadata = fs::metadata(&file_directory).await;
+                            if metadata.is_ok() && metadata.unwrap().is_file() {
+                                let content = fs::read(&file_directory).await?;
+                                Response::ok_bin(content)
+                            } else {
+                                eprintln!("NOT FOUND 1");
+                                Response::not_found_bin()
+                            }
+                        }
+                        Method::Post => {
+                            let metadata = fs::metadata(directory).await;
+                            if metadata.is_ok() && req.body.is_some() {
+                                let file_name = req.full_path[1..].split_once('/').unwrap().1;
+                                let file_directory = format!("{}/{}", directory, file_name,);
+                                let body = req.body.unwrap();
+                                fs::write(&file_directory, &body).await?;
+                                Response::created(body.len())
+                            } else {
+                                Response::bad_req_bin()
+                            }
+                        }
                     }
                 }
                 None => {
